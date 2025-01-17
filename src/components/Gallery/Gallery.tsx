@@ -7,6 +7,7 @@ import { ImageUpload } from '../ImageUpload/ImageUpload';
 import { DeleteButton } from '../DeleteButton/DeleteButton';
 import { images as mockImages } from '../../utils/images';
 import { handleUpload } from '../../utils/upload';
+import { ErrorBoundary } from '../ErrorBoundary/ErrorBoundary';
 export const Gallery = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('');
@@ -51,20 +52,21 @@ export const Gallery = () => {
           </select>
         </div>
       </div>
-
-      <div className="gallery__grid">
-        {filteredImages.map((image) => (
-          <div key={image.id} className="gallery__item" onClick={() => handleImageClick(image)}>
-            <LazyLoadImage effect={'black-and-white'}  className="gallery__image" src={image.src} alt={image.title} placeholder={
-              <div className="image-placeholder">
-                <div className="loading-spinner"></div>
-              </div>
-            } />
-            <DeleteButton onDelete={() => handleDelete(image.id)} />
-            <h4 className="gallery__title">{image.title}</h4>
-          </div>
-        ))}
-      </div>
+      <ErrorBoundary>
+        <div className="gallery__grid">
+          {filteredImages.map((image) => (
+            <div key={image.id} className="gallery__item" onClick={() => handleImageClick(image)}>
+              <LazyLoadImage effect={'black-and-white'} className="gallery__image" src={image.src} alt={image.title} placeholder={
+                <div className="image-placeholder">
+                  <div className="loading-spinner"></div>
+                </div>
+              } />
+              <DeleteButton onDelete={() => handleDelete(image.id)} />
+              <h4 className="gallery__title">{image.title}</h4>
+            </div>
+          ))}
+        </div>
+      </ErrorBoundary>
       <div
         className={`modal-overlay ${selectedImage ? 'active' : ''}`}
         onClick={handleCloseModal}

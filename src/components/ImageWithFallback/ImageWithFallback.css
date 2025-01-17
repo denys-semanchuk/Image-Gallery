@@ -1,0 +1,25 @@
+.error-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #f8f8f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.error-fallback {
+  padding: 20px;
+  text-align: center;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 8px;
+  margin: 20px;
+}
