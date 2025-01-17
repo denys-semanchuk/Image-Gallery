@@ -6,6 +6,9 @@
     "cra-template-typescript": "1.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-lazy-load-image-component": "^1.6.3",
+    "react-photo-gallery": "^8.0.0",
+    "react-photo-view": "^1.2.7",
     "react-scripts": "5.0.1"
   },
   "scripts": {
@@ -34,6 +37,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.0.7",
-    "@types/react-dom": "^19.0.3"
+    "@types/react-dom": "^19.0.3",
+    "@types/react-lazy-load-image-component": "^1.6.4"
   }
 }

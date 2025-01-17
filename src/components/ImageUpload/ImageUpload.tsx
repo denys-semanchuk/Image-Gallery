@@ -11,13 +11,11 @@ export const ImageUpload = ({ onUpload }: { onUpload: (file: File) => void }) =>
 
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setError('Please select an image file');
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError('Image size should be less than 5MB');
       return;
