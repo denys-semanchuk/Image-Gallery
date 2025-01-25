@@ -31,12 +31,6 @@ body {
   line-height: 1.5;
 }
 
-.container {
-  width: 100%;
-  max-width: var(--container-width);
-  margin: 0 auto;
-  padding: 0 var(--spacing-md);
-}
 .wrapper {
   padding: 20px;
 }

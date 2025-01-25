@@ -1,19 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image } from '../../types';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 import './Gallery.css';
-import { ImageUpload } from '../ImageUpload/ImageUpload';
 import { DeleteButton } from '../DeleteButton/DeleteButton';
-import { images as mockImages } from '../../utils/images';
-import { handleUpload } from '../../utils/upload';
 import { ErrorBoundary } from '../ErrorBoundary/ErrorBoundary';
+import { UploadModal } from '../UploadModal/UploadModal';
+import { handleUpload } from 'utils/upload';
+import { apiUrl } from 'constants/apiEndpoints';
+
 export const Gallery = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('');
-  const [images, setImages] = useState<Image[]>(mockImages);
+  const [images, setImages] = useState<Image[]>([]);
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
+  const imageUploadInputRef = React.useRef<HTMLInputElement>(null);
 
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+  const handleFileSelect = (file: File) => {
+    setUploadFile(file);
+    setShowUploadModal(true);
+  };
+
+  const handleUploadSubmit = ({ title, description, category }: { title: string; description: string; category: string }) => {
+    if (!uploadFile) return;
+
+    const newImage: Image = {
+      id: Date.now(),
+      title,
+      description,
+      src: URL.createObjectURL(uploadFile),
+      category: category ? [category] : ["uncategorized"]
+    };
+
+    setImages(prev => [...prev, newImage]);
+    handleUpload(uploadFile, newImage);
+    setShowUploadModal(false);
+    setUploadFile(null);
+  };
   const handleImageClick = (image: Image) => {
     setSelectedImage(image);
   };
@@ -32,10 +58,36 @@ export const Gallery = () => {
     setImages(tempImages)
   };
 
+  useEffect(() => {
+    fetch(`${apiUrl}/api/images`)
+      .then(response => response.json())
+      .then(data => setImages(data))
+      .catch(error => console.error('Error fetching images:', error));
+  }, [images])
+
   return (
     <>
       <div className="container gallery">
-        <ImageUpload onUpload={handleUpload(setImages)} />
+        <button
+          className="upload-button"
+          onClick={() => imageUploadInputRef.current?.click()}
+        >
+          Add Image
+        </button>
+        <input
+          ref={imageUploadInputRef}
+          type="file"
+          hidden
+          accept="image/*"
+          onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+        />
+        {showUploadModal && (
+          <UploadModal
+            imageFile={uploadFile}
+            onSubmit={handleUploadSubmit}
+            onClose={() => setShowUploadModal(false)}
+          />
+        )}
         <div className="gallery__controls">
           <input
             className="gallery__input"
@@ -56,7 +108,7 @@ export const Gallery = () => {
         <div className="gallery__grid">
           {filteredImages.map((image) => (
             <div key={image.id} className="gallery__item" onClick={() => handleImageClick(image)}>
-              <LazyLoadImage effect={'black-and-white'} className="gallery__image" src={image.src} alt={image.title} placeholder={
+              <LazyLoadImage effect={'black-and-white'} className="gallery__image" src={`${apiUrl}${image.src}`} alt={image.title} placeholder={
                 <div className="image-placeholder">
                   <div className="loading-spinner"></div>
                 </div>
@@ -74,7 +126,7 @@ export const Gallery = () => {
         {selectedImage && (
           <img
             className="modal-image"
-            src={selectedImage.src}
+            src={`${apiUrl}${selectedImage.src}`}
             alt={selectedImage.title}
           />
         )}

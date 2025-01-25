@@ -1,36 +1,85 @@
-const express = require('express');
-const multer = require('multer');
-const cors = require('cors');
-const path = require('path');
+const express = require("express");
+const multer = require("multer");
+const cors = require("cors");
+const path = require("path");
+const dotenv = require("dotenv");
 
+dotenv.config();
 const app = express();
 app.use(cors());
-app.use('/uploads', express.static('uploads'));
+app.use("/uploads", express.static("uploads"));
+const fs = require("fs");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
-  }
+  },
 });
 
 const upload = multer({ storage });
 
-app.post('/upload', upload.single('image'), (req, res) => {
+app.post("/upload", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: "No file uploaded" });
     }
+    const imagesPath = path.join(__dirname, "./images.json");
+    const newImage = {
+      id: Date.now(),
+      title: req.body.title || "Untitled",
+      description: req.body.description || "",
+      src: `/uploads/${req.file.filename}`,
+      category: req.body.category,
+    };
+    const currentImages = JSON.parse(fs.readFileSync(imagesPath, "utf8"));
+    currentImages.push(newImage);
+    const newContent = JSON.stringify(currentImages, null, 2);
+    fs.writeFileSync(imagesPath, newContent, "utf8");
     res.json({
-      url: `http://localhost:5000/uploads/${req.file.filename}`
+      url: newImage.src,
+      image: newImage,
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+    console.log(error);
+  }
+});
+
+app.get("/api/images", (req, res) => {
+  try {
+    const images = fs.readFileSync("./images.json");
+    res.json(JSON.parse(images));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+// app.delete("/api/images/:id", (req, res) => {
+//   try {
+//     const id = parseInt(req.params.id);
+//     const image = images.find((img) => img.id === id);
+
+//     if (!image) {
+//       return res.status(404).json({ error: "Image not found" });
+//     }
+
+//     const filename = path.basename(image.src);
+//     const filepath = path.join(__dirname, "uploads", filename);
+
+//     if (fs.existsSync(filepath)) {
+//       fs.unlinkSync(filepath);
+//     }
+
+//     images = images.filter((img) => img.id !== id);
+//     res.status(200).json({ message: "Image deleted successfully" });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
 app.listen(5000, () => {
-  console.log('Server running on port 5000');
+  console.log("Server running on port 5000");
 });

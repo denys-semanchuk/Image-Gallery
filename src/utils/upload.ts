@@ -1,34 +1,32 @@
-import { Image } from "../types";
+import { apiUrl } from "constants/apiEndpoints";
+import { Image } from "types";
 
-export const handleUpload = function (
-  setImages: React.Dispatch<React.SetStateAction<Image[]>>
-) {
-  return async function (file: File) {
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
+export const handleUpload = async function (file: File, newImage: Image) {
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("title", newImage.title);
+    formData.append("description", newImage.description);
+    formData.append("category", JSON.stringify(newImage.category));
+    const response = await fetch(`${apiUrl}/upload`, {
+      method: "POST",
+      body: formData,
+    });
 
-      const response = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const data = await response.json();
-
-      const newImage: Image = {
-        id: Date.now(),
-        src: data.url,
-        title: file.name.split(".")[0],
-        category: ["uncategorized"],
-      };
-
-      setImages((prevImages) => [...prevImages, newImage]);
-    } catch (error) {
-      console.error("Error uploading:", error);
+    if (!response.ok) {
+      throw new Error("Upload failed");
     }
-  };
+
+    const data = await response.json();
+
+    const newImageFetched: any = {
+      id: Date.now(),
+      src: data.url,
+      title: file.name.split(".")[0],
+      category: ["uncategorized"],
+    };
+    return newImageFetched;
+  } catch (error) {
+    console.error("Error uploading:", error);
+  }
 };
