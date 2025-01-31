@@ -57,6 +57,50 @@ app.get("/api/images", (req, res) => {
   }
 });
 
+app.get('/api/images/:id', async (req, res) => {
+  try {
+    console.log('penis')
+    const id = parseInt(req.params.id);
+    const imagesPath = path.join(__dirname, './images.json');
+    
+    const currentImages = JSON.parse(fs.readFileSync(imagesPath, 'utf8'));
+    const image = currentImages.find(img => img.id === id);
+
+    if (!image) {
+      return res.status(404).json({ error: 'Image not found' }); 
+    }
+
+    const imagePath = path.join(__dirname, `.${image.src}`);
+    
+    if (!fs.existsSync(imagePath)) {
+      return res.status(404).json({ error: 'Image file not found' });
+    }
+
+    const ext = path.extname(imagePath).toLowerCase();
+    
+    // Set content type based on extension
+    const contentType = {
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp'
+    }[ext] || 'application/octet-stream';
+
+    // Set headers
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(imagePath)}"`);
+
+    // Send file as blob
+    const fileStream = fs.createReadStream(imagePath);
+    fileStream.pipe(res);
+
+  } catch (error) {
+    console.error('Fetch error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.delete('/api/images/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);

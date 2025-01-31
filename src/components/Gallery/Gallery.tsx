@@ -1,47 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { Image } from '../../types';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
-
-import './Gallery.css';
 import { DeleteButton } from '../DeleteButton/DeleteButton';
 import { ErrorBoundary } from '../ErrorBoundary/ErrorBoundary';
 import { UploadModal } from '../UploadModal/UploadModal';
-import { handleUpload } from 'utils/upload';
 import { apiUrl } from 'constants/apiEndpoints';
+import { DownloadButton } from '../DownloadButton/DownloadButton';
+import { useGallery } from 'context/GalleryContext';
+import useUploadHandler from 'hooks/useUploadHook';
+import './Gallery.css';
 
 export const Gallery = () => {
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [category, setCategory] = useState('');
-  const [images, setImages] = useState<Image[]>([]);
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
   const imageUploadInputRef = React.useRef<HTMLInputElement>(null);
 
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const { sortOrder, setSortOrder, searchTerm, setSearchTerm, category, setCategory, images, setImages, showUploadModal, setShowUploadModal, uploadFile, setUploadFile
+  } = useGallery();
 
   const handleFileSelect = (file: File) => {
     setUploadFile(file);
     setShowUploadModal(true);
   };
 
-  const handleUploadSubmit = ({ title, description, category }: { title: string; description: string; category: string }) => {
-    if (!uploadFile) return;
-
-    const newImage: Image = {
-      id: Date.now(),
-      title,
-      description,
-      src: URL.createObjectURL(uploadFile),
-      category: category ? [category] : ["uncategorized"],
-      createdAt: new Date()
-    };
-
-    setImages(prev => [...prev, newImage]);
-    handleUpload(uploadFile, newImage);
-    setShowUploadModal(false);
-    setUploadFile(null);
-  };
+  const { handleUploadSubmit } = useUploadHandler()
   const handleImageClick = (image: Image) => {
     setSelectedImage(image);
   };
@@ -84,7 +65,7 @@ export const Gallery = () => {
       .then(response => response.json())
       .then(data => setImages(data))
       .catch(error => console.error('Error fetching images:', error));
-  }, [images])
+  }, [])
 
   return (
     <>
@@ -143,6 +124,9 @@ export const Gallery = () => {
                 </div>
               } />
               <DeleteButton onDelete={() => handleDelete(image.id)} />
+              <DownloadButton
+                imageId={image.id}
+              />
               <h4 className="gallery__title">{image.title}</h4>
             </div>
           ))}
