@@ -57,28 +57,32 @@ app.get("/api/images", (req, res) => {
   }
 });
 
-// app.delete("/api/images/:id", (req, res) => {
-//   try {
-//     const id = parseInt(req.params.id);
-//     const image = images.find((img) => img.id === id);
+app.delete('/api/images/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const imagesPath = path.join(__dirname, './images.json');
+    
+    const currentImages = JSON.parse(fs.readFileSync(imagesPath, 'utf8'));
+    
+    const imageToDelete = currentImages.find(img => img.id === id);
+    if (!imageToDelete) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
 
-//     if (!image) {
-//       return res.status(404).json({ error: "Image not found" });
-//     }
+    const imagePath = path.join(__dirname, `.${imageToDelete.src}`);
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
 
-//     const filename = path.basename(image.src);
-//     const filepath = path.join(__dirname, "uploads", filename);
+    const updatedImages = currentImages.filter(img => img.id !== id);
+    fs.writeFileSync(imagesPath, JSON.stringify(updatedImages, null, 2), 'utf8');
 
-//     if (fs.existsSync(filepath)) {
-//       fs.unlinkSync(filepath);
-//     }
-
-//     images = images.filter((img) => img.id !== id);
-//     res.status(200).json({ message: "Image deleted successfully" });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
+    res.json({ message: 'Image deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");

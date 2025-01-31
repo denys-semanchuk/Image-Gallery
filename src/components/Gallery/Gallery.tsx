@@ -10,6 +10,7 @@ import { handleUpload } from 'utils/upload';
 import { apiUrl } from 'constants/apiEndpoints';
 
 export const Gallery = () => {
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('');
   const [images, setImages] = useState<Image[]>([]);
@@ -32,7 +33,8 @@ export const Gallery = () => {
       title,
       description,
       src: URL.createObjectURL(uploadFile),
-      category: category ? [category] : ["uncategorized"]
+      category: category ? [category] : ["uncategorized"],
+      createdAt: new Date()
     };
 
     setImages(prev => [...prev, newImage]);
@@ -53,9 +55,28 @@ export const Gallery = () => {
     return (image.category.includes(category) && image.title.toLowerCase().includes(searchTerm.toLowerCase()));
   });
 
+  const sortedImages = [...filteredImages].sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+  });
+
   const handleDelete = (imageID: number) => {
     const tempImages = images.filter(image => image.id !== imageID);
     setImages(tempImages)
+    const imageToDelete = images.find(image => image.id === imageID);
+    if (imageToDelete) {
+      fetch(`${apiUrl}/api/images/${imageID}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(imageToDelete),
+      })
+        .then(response => response.json())
+        .then(data => console.log('Success:', data))
+        .catch(error => console.error('Error:', error));
+    }
   };
 
   useEffect(() => {
@@ -103,10 +124,18 @@ export const Gallery = () => {
             <option value="architecture">Architecture</option>
           </select>
         </div>
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+          className="gallery__sort"
+        >
+          <option value="desc">Newest First</option>
+          <option value="asc">Oldest First</option>
+        </select>
       </div>
       <ErrorBoundary>
         <div className="gallery__grid">
-          {filteredImages.map((image) => (
+          {sortedImages.map((image) => (
             <div key={image.id} className="gallery__item" onClick={() => handleImageClick(image)}>
               <LazyLoadImage effect={'black-and-white'} className="gallery__image" src={`${apiUrl}${image.src}`} alt={image.title} placeholder={
                 <div className="image-placeholder">

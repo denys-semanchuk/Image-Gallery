@@ -1,7 +1,14 @@
 import React from 'react';
 import './DeleteButton.css';
+
 export const DeleteButton = ({ onDelete }: { onDelete: () => void }) => (
-  <button className="delete-btn" onClick={onDelete}>
+  <button 
+    className="delete-btn" 
+    onClick={(e) => {
+      e.stopPropagation();
+      onDelete();
+    }}
+  >
     <svg 
       viewBox="0 0 24 24" 
       fill="none" 

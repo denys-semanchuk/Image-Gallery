@@ -4,4 +4,5 @@ export type Image = {
   description: string;
   src: string;
   category: string[];
+  createdAt: Date;
 };
