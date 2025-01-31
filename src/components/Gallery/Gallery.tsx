@@ -11,6 +11,7 @@ import useUploadHandler from 'hooks/useUploadHook';
 import { DeleteConfirmModal } from '../DeleteConfirmModal/DeleteConfirmButton';
 import { ClearGalleryModal } from '../ClearGalleryModal/ClearGalleryModal';
 import './Gallery.css';
+import { ImageSlider } from '../ImageSlider/ImageSlider';
 
 export const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
@@ -39,7 +40,7 @@ export const Gallery = () => {
   const handleCloseModal = () => {
     setSelectedImage(null);
   };
-  let sortedImages;
+  let sortedImages: Image[] | undefined;
   if (images.length > 0) {
     const filteredImages = images.filter(image => {
       if (!category && !searchTerm) return image;
@@ -75,7 +76,8 @@ export const Gallery = () => {
     fetch(`${apiUrl}/api/images`)
       .then(response => response.json())
       .then(data => {
-        setImages(data)})
+        setImages(data)
+      })
       .catch(error => console.error('Error fetching images:', error));
   }, [])
 
@@ -150,10 +152,10 @@ export const Gallery = () => {
         onClick={handleCloseModal}
       >
         {selectedImage && (
-          <img
-            className="modal-image"
-            src={`${apiUrl}${selectedImage.src}`}
-            alt={selectedImage.title}
+          <ImageSlider
+            images={sortedImages!}
+            currentImage={selectedImage}
+            onClose={() => setSelectedImage(null)}
           />
         )}
       </div>
