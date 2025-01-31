@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Image } from '../../types';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
+import { Image } from 'types';
 import { DeleteButton } from '../DeleteButton/DeleteButton';
 import { ErrorBoundary } from '../ErrorBoundary/ErrorBoundary';
 import { UploadModal } from '../UploadModal/UploadModal';
@@ -8,13 +8,15 @@ import { apiUrl } from 'constants/apiEndpoints';
 import { DownloadButton } from '../DownloadButton/DownloadButton';
 import { useGallery } from 'context/GalleryContext';
 import useUploadHandler from 'hooks/useUploadHook';
+import { DeleteConfirmModal } from '../DeleteConfirmModal/DeleteConfirmButton';
+import { ClearGalleryModal } from '../ClearGalleryModal/ClearGalleryModal';
 import './Gallery.css';
 
 export const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
   const imageUploadInputRef = React.useRef<HTMLInputElement>(null);
 
-  const { sortOrder, setSortOrder, searchTerm, setSearchTerm, category, setCategory, images, setImages, showUploadModal, setShowUploadModal, uploadFile, setUploadFile
+  const { setShowClearConfirm, handleClearGallery, showClearConfirm, deleteConfirm, setDeleteConfirm, sortOrder, setSortOrder, searchTerm, setSearchTerm, category, setCategory, images, setImages, showUploadModal, setShowUploadModal, uploadFile, setUploadFile
   } = useGallery();
 
   const handleFileSelect = (file: File) => {
@@ -27,20 +29,30 @@ export const Gallery = () => {
     setSelectedImage(image);
   };
 
+  const handleDeleteConfirm = () => {
+    if (deleteConfirm.imageId) {
+      handleDelete(deleteConfirm.imageId);
+      setDeleteConfirm({ show: false, imageId: null });
+    }
+  };
+
   const handleCloseModal = () => {
     setSelectedImage(null);
   };
+  let sortedImages;
+  if (images.length > 0) {
+    const filteredImages = images.filter(image => {
+      if (!category && !searchTerm) return image;
+      return (image.category.includes(category) && image.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    });
 
-  const filteredImages = images.filter(image => {
-    if (!category && !searchTerm) return image;
-    return (image.category.includes(category) && image.title.toLowerCase().includes(searchTerm.toLowerCase()));
-  });
+    sortedImages = [...filteredImages].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
 
-  const sortedImages = [...filteredImages].sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime();
-    const dateB = new Date(b.createdAt).getTime();
-    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
-  });
+  }
 
   const handleDelete = (imageID: number) => {
     const tempImages = images.filter(image => image.id !== imageID);
@@ -104,32 +116,33 @@ export const Gallery = () => {
             <option value="people">People</option>
             <option value="architecture">Architecture</option>
           </select>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+            className="gallery__sort"
+          >
+            <option value="desc">Newest First</option>
+            <option value="asc">Oldest First</option>
+          </select>
         </div>
-        <select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-          className="gallery__sort"
-        >
-          <option value="desc">Newest First</option>
-          <option value="asc">Oldest First</option>
-        </select>
       </div>
       <ErrorBoundary>
         <div className="gallery__grid">
-          {sortedImages.map((image) => (
+          {sortedImages && sortedImages.map((image) => (
             <div key={image.id} className="gallery__item" onClick={() => handleImageClick(image)}>
               <LazyLoadImage effect={'black-and-white'} className="gallery__image" src={`${apiUrl}${image.src}`} alt={image.title} placeholder={
                 <div className="image-placeholder">
                   <div className="loading-spinner"></div>
                 </div>
               } />
-              <DeleteButton onDelete={() => handleDelete(image.id)} />
+              <DeleteButton onDelete={() => setDeleteConfirm({ show: true, imageId: image.id })} />
               <DownloadButton
                 imageId={image.id}
               />
               <h4 className="gallery__title">{image.title}</h4>
             </div>
           ))}
+          {!sortedImages && <p>No images uploaded</p>}
         </div>
       </ErrorBoundary>
       <div
@@ -144,6 +157,19 @@ export const Gallery = () => {
           />
         )}
       </div>
+      {deleteConfirm.show && (
+        <DeleteConfirmModal
+          imageTitle={images.find(img => img.id === deleteConfirm.imageId)?.title || ''}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteConfirm({ show: false, imageId: null })}
+        />
+      )}
+      {showClearConfirm && (
+        <ClearGalleryModal
+          onConfirm={handleClearGallery}
+          onCancel={() => setShowClearConfirm(false)}
+        />
+      )}
     </>
   )
 };

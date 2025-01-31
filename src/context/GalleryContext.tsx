@@ -1,5 +1,6 @@
 import { Image } from "types";
 import React, { createContext, Dispatch, SetStateAction, useContext, useState } from "react";
+import { apiUrl } from "constants/apiEndpoints";
 
 interface GalleryContextType {
   sortOrder: 'asc' | 'desc';
@@ -16,6 +17,11 @@ interface GalleryContextType {
   setShowUploadModal: (show: boolean) => void;
   uploadFile: File | null;
   setUploadFile: (file: File | null) => void;
+  deleteConfirm: { show: boolean; imageId: number | null },
+  setDeleteConfirm: Dispatch<SetStateAction<{ show: boolean; imageId: number | null }>>,
+  showClearConfirm: boolean;
+  setShowClearConfirm: (show: boolean) => void;
+  handleClearGallery: () => void;
 }
 
 const GalleryContext = createContext<GalleryContextType | null>(null);
@@ -27,9 +33,27 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; imageId: number | null }>({
+    show: false,
+    imageId: null
+  });
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const handleClearGallery = async () => {
+    try {
+      await fetch(`${apiUrl}/api/images/clear`, {
+        method: 'DELETE',
+      });
+      setImages([]);
+      setShowClearConfirm(false);
+    } catch (error) {
+      console.error('Error clearing gallery:', error);
+    }
+  };
 
   return (
     <GalleryContext.Provider value={{
+      deleteConfirm, setDeleteConfirm,
       sortOrder,
       setSortOrder,
       searchTerm,
@@ -43,7 +67,9 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       showUploadModal,
       setShowUploadModal,
       uploadFile,
-      setUploadFile
+      setUploadFile,
+      showClearConfirm, setShowClearConfirm,
+      handleClearGallery
     }}>
       {children}
     </GalleryContext.Provider>
