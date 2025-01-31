@@ -51,7 +51,6 @@ export const Gallery = () => {
       const dateB = new Date(b.createdAt).getTime();
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
-
   }
 
   const handleDelete = (imageID: number) => {
@@ -75,7 +74,8 @@ export const Gallery = () => {
   useEffect(() => {
     fetch(`${apiUrl}/api/images`)
       .then(response => response.json())
-      .then(data => setImages(data))
+      .then(data => {
+        setImages(data)})
       .catch(error => console.error('Error fetching images:', error));
   }, [])
 

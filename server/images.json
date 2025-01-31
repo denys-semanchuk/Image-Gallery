@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": 1738356135061,
+    "title": "ss",
+    "description": "ss",
+    "src": "/uploads/1738356135049.jpg",
+    "category": "[\"people\"]",
+    "createdAt": "2025-01-31T20:42:15.061Z"
+  },
+  {
+    "id": 1738356143758,
+    "title": "ss",
+    "description": "ss",
+    "src": "/uploads/1738356143754.jpg",
+    "category": "[\"nature\"]",
+    "createdAt": "2025-01-31T20:42:23.758Z"
+  }
+]

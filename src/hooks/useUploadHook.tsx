@@ -16,7 +16,7 @@ export const useUploadHandler = () => {
       createdAt: new Date()
     };
 
-    setImages(prev => [...prev, newImage]);
+    setImages(images.concat([newImage]));
     handleUpload(uploadFile, newImage);
     setShowUploadModal(false);
     setUploadFile(null);

@@ -33,6 +33,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
       description: req.body.description || "",
       src: `/uploads/${req.file.filename}`,
       category: req.body.category,
+      createdAt: new Date()
     };
     const currentImages = JSON.parse(fs.readFileSync(imagesPath, "utf8"));
     currentImages.push(newImage);
