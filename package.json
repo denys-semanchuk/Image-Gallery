@@ -1,6 +1,7 @@
 {
-  "name": "image_gallery",
-  "version": "0.1.0",
+  "name": "image-gallery-api",
+  "version": "1.0.0",
+  "main": "server.js",
   "private": true,
   "dependencies": {
     "cra-template-typescript": "1.2.0",
@@ -12,7 +13,7 @@
     "react-scripts": "5.0.1"
   },
   "scripts": {
-    "start": "react-scripts start npm run ./server/server.js",
+    "start": "react-scripts start",
     "start:server": "nodemon ./server/server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -40,5 +41,8 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "@types/react-lazy-load-image-component": "^1.6.4"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
